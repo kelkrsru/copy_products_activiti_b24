@@ -80,6 +80,7 @@ def _get_initial_data(request) -> dict[str, any] or HttpResponse:
     """Method for get initial data from Post request."""
     if request.method != 'POST':
         return HttpResponse(status=HTTPStatus.BAD_REQUEST)
+    print(request.POST)
     return {
         'member_id': request.POST.get('auth[member_id]'),
         'event_token': request.POST.get('event_token'),
