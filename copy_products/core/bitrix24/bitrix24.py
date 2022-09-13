@@ -167,13 +167,13 @@ class SmartProcessB24(ObjB24):
             }
         )).get('items')
 
-    def get_all_products(self, element_id):
+    def get_all_products(self, owner_type, element_id):
         """Get all products for smart element."""
         return self._check_error(self.bx24.call(
             'crm.item.productrow.list',
             {
                 'filter': {
-                    '=ownerType': "Tb1",
+                    '=ownerType': owner_type,
                     "=ownerId": element_id
                 }
             }
