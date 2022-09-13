@@ -155,7 +155,7 @@ class ProductB24(ObjB24):
 
 class SmartProcessB24(ObjB24):
     """Класс Smart процесс."""
-    GET_PROPS_REST_METHOD: str = 'crm.type.get'
+    # GET_PROPS_REST_METHOD: str = 'crm.type.get'
 
     def get_all_elements(self):
         """Метод получения всех элементов смарт процесса."""
