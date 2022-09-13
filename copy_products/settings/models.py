@@ -3,11 +3,7 @@ from django.db import models
 
 
 class SettingsPortal(models.Model):
-    """Модель настроек для портала."""
-    id_smart_process_cargo = models.PositiveSmallIntegerField(
-        verbose_name='ID smart процесса "Груз"',
-        default=0,
-    )
+    """Model for settings portal."""
     portal = models.OneToOneField(
         Portals,
         verbose_name='Портал',

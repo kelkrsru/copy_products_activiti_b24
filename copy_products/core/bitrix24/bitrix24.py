@@ -158,7 +158,7 @@ class SmartProcessB24(ObjB24):
         )).get('items')
 
     def get_all_products(self, element_id):
-        """Получить все товары smart процесса"""
+        """Get all products for smart element."""
         return self._check_error(self.bx24.call(
             'crm.item.productrow.list',
             {
