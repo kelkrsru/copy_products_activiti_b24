@@ -51,7 +51,7 @@ class Portals(models.Model):
         if ((self.auth_id_create_date + timezone.timedelta(seconds=3600))
                 < timezone.now()):
             bx24 = Bitrix24(self.name)
-            bx24.auth_hostname = 'oauth.bitrix.info'
+            # bx24.auth_hostname = 'oauth.bitrix.info'
             bx24._refresh_token = self.refresh_id
             bx24.client_id = self.client_id
             bx24.client_secret = self.client_secret
