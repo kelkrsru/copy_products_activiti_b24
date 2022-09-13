@@ -63,7 +63,13 @@ def copy_products(request):
     initial_data: dict[str, any] = _get_initial_data(request)
     portal, settings_portal = _create_portal(initial_data)
     smart_element_id, deal_id = _check_initial_data(portal, initial_data)
-    print(initial_smart_process(portal, initial_data))
+    smart_process_code = initial_smart_process(portal, initial_data)
+    _response_for_bp(
+        portal,
+        initial_data['event_token'],
+        'Успех. Товары скопированы.',
+        return_values={'result': f'Ok: {smart_process_code = }'},
+    )
     return HttpResponse(status=HTTPStatus.OK)
 
 
