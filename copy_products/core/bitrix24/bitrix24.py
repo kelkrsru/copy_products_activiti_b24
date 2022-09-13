@@ -173,7 +173,7 @@ class SmartProcessB24(ObjB24):
             'crm.item.productrow.list',
             {
                 'filter': {
-                    '=ownerType': owner_type,
+                    '=ownerType': 'Ta2',
                     "=ownerId": element_id
                 }
             }
