@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from core.bitrix24.bitrix24 import ActivityB24
+from core.bitrix24.bitrix24 import ActivityB24, EnumerationB24
 from core.models import Portals
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -63,6 +63,7 @@ def copy_products(request):
     initial_data: dict[str, any] = _get_initial_data(request)
     portal, settings_portal = _create_portal(initial_data)
     smart_element_id, deal_id = _check_initial_data(portal, initial_data)
+    print(initial_smart_process(portal, initial_data))
     return HttpResponse(status=HTTPStatus.OK)
 
 
@@ -86,7 +87,8 @@ def _get_initial_data(request):
         'event_token': request.POST.get('event_token'),
         'smart_element_id': request.POST.get(
             'properties[smart_element_id]') or 0,
-        'deal_id': request.POST.get('properties[deal_id]') or 0
+        'deal_id': request.POST.get('properties[deal_id]') or 0,
+        'document_type': request.POST.get('document_type[2]'),
     }
 
 
@@ -101,6 +103,23 @@ def _check_initial_data(portal, initial_data):
             portal,
             initial_data['event_token'],
             'Ошибка. Проверьте входные данные.',
+            return_values={'result': f'Error: {ex.args[0]}'},
+        )
+        return HttpResponse(status=HTTPStatus.OK)
+
+
+def initial_smart_process(portal, initial_data):
+    """Method for initial smart process."""
+    try:
+        enum = EnumerationB24(portal)
+        owner_types = enum.get_ownertype()
+        return next(x['SYMBOL_CODE_SHORT'] for x in owner_types
+                    if x['SYMBOL_CODE'] == initial_data['document_type'])
+    except Exception as ex:
+        _response_for_bp(
+            portal,
+            initial_data['event_token'],
+            'Ошибка. Невозможно получить данные о смарт процессе.',
             return_values={'result': f'Error: {ex.args[0]}'},
         )
         return HttpResponse(status=HTTPStatus.OK)

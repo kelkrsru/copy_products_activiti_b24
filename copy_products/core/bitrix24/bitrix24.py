@@ -31,6 +31,16 @@ class ObjB24:
             raise RuntimeError('Error', 'No description error')
 
 
+class EnumerationB24(ObjB24):
+    """Класс Перечисления."""
+    def __init__(self, portal: Portals, id_obj=None):
+        super().__init__(portal, id_obj)
+
+    def get_ownertype(self):
+        """Получить все типы сущностей."""
+        return self._check_error(self.bx24.call('crm.enum.ownertype'))
+
+
 class DealB24(ObjB24):
     """Класс Сделка."""
     GET_PROPS_REST_METHOD: str = 'crm.deal.get'
