@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -58,10 +59,11 @@ def uninstall(request):
 def copy_products(request):
     """View for activity copy products."""
     with open('/root/test.log', 'w', encoding='utf-8') as file:
-        file.write(request.POST)
-        initial_data: dict[str, any] = _get_initial_data(request)
-        portal, settings_portal = _create_portal(initial_data)
-        smart_element_id, deal_id = _check_initial_data(portal, initial_data)
+        file.write(json.dumps(request.POST))
+    initial_data: dict[str, any] = _get_initial_data(request)
+    portal, settings_portal = _create_portal(initial_data)
+    smart_element_id, deal_id = _check_initial_data(portal, initial_data)
+    return HttpResponse(status=HTTPStatus.OK)
 
 
 def _create_portal(initial_data):
