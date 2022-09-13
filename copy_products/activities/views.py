@@ -73,7 +73,9 @@ def copy_products(request):
     for product in products:
         for key in keys_for_del:
             del product[key]
-        deal.set_products(product)
+    deal.get_all_products()
+    products += deal.products
+    deal.set_products(products)
     _response_for_bp(
         portal,
         initial_data['event_token'],
