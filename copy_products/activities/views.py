@@ -49,6 +49,12 @@ def uninstall(request):
     return JsonResponse({'result': result})
 
 
+@csrf_exempt
+def copy_products(request):
+    """View for activity copy products."""
+    member_id = request.POST.get('member_id')
+
+
 def response_for_bp(portal, event_token, log_message, return_values=None):
     """Method for send parameters in bp."""
     bx24 = Bitrix24(portal.name)
