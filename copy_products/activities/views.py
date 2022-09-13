@@ -57,10 +57,13 @@ def uninstall(request):
 @csrf_exempt
 def copy_products(request):
     """View for activity copy products."""
-    initial_data: dict[str, any] = _get_initial_data(request)
-    portal, settings_portal = _create_portal(initial_data)
-    smart_element_id, deal_id = _check_initial_data(portal, initial_data)
-    print(request.POST)
+    with open('/root/test.log', 'w', encoding='utf-8') as file:
+        file.write(request.POST)
+        initial_data: dict[str, any] = _get_initial_data(request)
+        file.write(initial_data)
+        portal, settings_portal = _create_portal(initial_data)
+        smart_element_id, deal_id = _check_initial_data(portal, initial_data)
+
 
 
 def _create_portal(initial_data: dict[str, any],
