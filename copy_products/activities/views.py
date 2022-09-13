@@ -19,7 +19,7 @@ def install(request):
     member_id = request.POST.get('member_id')
     activity_code = request.POST.get('code')
 
-    portal: Portals = get_object_or_404(Portals, member_id=member_id)
+    portal = get_object_or_404(Portals, member_id=member_id)
     portal.check_auth()
 
     activity = get_object_or_404(Activity, code=activity_code)
@@ -40,7 +40,7 @@ def uninstall(request):
     member_id = request.POST.get('member_id')
     activity_code = request.POST.get('code')
 
-    portal: Portals = get_object_or_404(Portals, member_id=member_id)
+    portal = get_object_or_404(Portals, member_id=member_id)
     portal.check_auth()
 
     try:
@@ -60,18 +60,14 @@ def copy_products(request):
     with open('/root/test.log', 'w', encoding='utf-8') as file:
         file.write(request.POST)
         initial_data: dict[str, any] = _get_initial_data(request)
-        file.write(initial_data)
         portal, settings_portal = _create_portal(initial_data)
         smart_element_id, deal_id = _check_initial_data(portal, initial_data)
 
 
-
-def _create_portal(initial_data: dict[str, any],
-                   ) -> tuple[Portals, SettingsPortal] or HttpResponse:
+def _create_portal(initial_data):
     """Method for create portal."""
     try:
-        portal: Portals = Portals.objects.get(
-            member_id=initial_data['member_id'])
+        portal = Portals.objects.get(member_id=initial_data['member_id'])
         portal.check_auth()
         settings_portal = SettingsPortal.objects.get(portal=portal)
         return portal, settings_portal
@@ -79,11 +75,10 @@ def _create_portal(initial_data: dict[str, any],
         return HttpResponse(status=HTTPStatus.BAD_REQUEST)
 
 
-def _get_initial_data(request) -> dict[str, any] or HttpResponse:
+def _get_initial_data(request):
     """Method for get initial data from Post request."""
     if request.method != 'POST':
         return HttpResponse(status=HTTPStatus.BAD_REQUEST)
-    print(request.POST)
     return {
         'member_id': request.POST.get('auth[member_id]'),
         'event_token': request.POST.get('event_token'),
@@ -93,8 +88,7 @@ def _get_initial_data(request) -> dict[str, any] or HttpResponse:
     }
 
 
-def _check_initial_data(portal: Portals, initial_data: dict[str, any]
-                        ) -> tuple[int, int] or HttpResponse:
+def _check_initial_data(portal, initial_data):
     """Method for check initial data."""
     try:
         smart_element_id = int(initial_data['smart_element_id'])
@@ -110,30 +104,30 @@ def _check_initial_data(portal: Portals, initial_data: dict[str, any]
         return HttpResponse(status=HTTPStatus.OK)
 
 
-def create_obj_and_get_all_products(
-        portal: Portals, obj_id: int, initial_data: dict[str, any],
-        logger) -> (DealB24 or QuoteB24) or HttpResponse:
-    """Функция создания сделки или предложения и получения всех товаров."""
-    try:
-        if initial_data['document_type'] == 'DEAL':
-            obj = DealB24(portal, obj_id)
-        else:
-            obj = QuoteB24(portal, obj_id)
-        obj.get_all_products()
-        if obj.products:
-            return obj
-        logger.error(MESSAGES_FOR_LOG['products_in_deal_null'])
-        logger.info(MESSAGES_FOR_LOG['stop_app'])
-        response_for_bp(portal, initial_data['event_token'],
-                        MESSAGES_FOR_BP['products_in_deal_null'])
-        return HttpResponse(status=200)
-    except RuntimeError as ex:
-        logger.error(MESSAGES_FOR_LOG['impossible_get_products'])
-        logger.info(MESSAGES_FOR_LOG['stop_app'])
-        response_for_bp(portal, initial_data['event_token'],
-                        MESSAGES_FOR_BP['impossible_get_products'] + ex.args[
-                            0])
-        return HttpResponse(status=200)
+# def create_obj_and_get_all_products(
+#         portal: Portals, obj_id: int, initial_data: dict[str, any],
+#         logger) -> (DealB24 or QuoteB24) or HttpResponse:
+#     """Функция создания сделки или предложения и получения всех товаров."""
+#     try:
+#         if initial_data['document_type'] == 'DEAL':
+#             obj = DealB24(portal, obj_id)
+#         else:
+#             obj = QuoteB24(portal, obj_id)
+#         obj.get_all_products()
+#         if obj.products:
+#             return obj
+#         logger.error(MESSAGES_FOR_LOG['products_in_deal_null'])
+#         logger.info(MESSAGES_FOR_LOG['stop_app'])
+#         response_for_bp(portal, initial_data['event_token'],
+#                         MESSAGES_FOR_BP['products_in_deal_null'])
+#         return HttpResponse(status=200)
+#     except RuntimeError as ex:
+#         logger.error(MESSAGES_FOR_LOG['impossible_get_products'])
+#         logger.info(MESSAGES_FOR_LOG['stop_app'])
+#         response_for_bp(portal, initial_data['event_token'],
+#                         MESSAGES_FOR_BP['impossible_get_products'] + ex.args[
+#                             0])
+#         return HttpResponse(status=200)
 
 
 def _response_for_bp(portal, event_token, log_message, return_values=None):
