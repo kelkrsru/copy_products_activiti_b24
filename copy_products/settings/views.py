@@ -5,8 +5,6 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
-from settings.forms import SettingsPortalForm
-from settings.models import SettingsPortal
 
 
 @xframe_options_exempt
@@ -26,8 +24,6 @@ def index(request):
     portal: Portals = get_object_or_404(Portals, member_id=member_id)
     portal.check_auth()
 
-    settings_portal = get_object_or_404(SettingsPortal, portal=portal)
-
     activities: Activity = Activity.objects.all()
 
     try:
@@ -39,25 +35,10 @@ def index(request):
             'error_description': ex.args[1]
         })
 
-    if 'save-settings' in request.POST:
-        form: SettingsPortalForm = SettingsPortalForm(
-            request.POST or None,
-            instance=settings_portal,
-        )
-        if form.is_valid():
-            fields_form = form.save(commit=False)
-            fields_form.portal = portal
-            fields_form.save()
-    else:
-        form: SettingsPortalForm = SettingsPortalForm(
-            instance=settings_portal,
-        )
-
     context = {
         'activities': activities,
         'activities_installed': activities_installed,
         'member_id': member_id,
-        'form': form,
         'app_name': settings.APP_NAME,
     }
     return render(request, 'settings/index.html', context)
