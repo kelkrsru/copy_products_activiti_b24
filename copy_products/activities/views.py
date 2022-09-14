@@ -1,17 +1,13 @@
-import json
 from http import HTTPStatus
 
-from django.core.exceptions import ObjectDoesNotExist
-
-from core.bitrix24.bitrix24 import ActivityB24, EnumerationB24, \
-    SmartProcessB24, DealB24, ProductRowB24
+from activities.models import Activity
+from core.bitrix24.bitrix24 import ActivityB24, EnumerationB24, ProductRowB24
 from core.models import Portals
-from django.http import JsonResponse, HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from pybitrix24 import Bitrix24
-
-from activities.models import Activity
 from settings.models import SettingsPortal
 
 
@@ -59,26 +55,33 @@ def uninstall(request):
 @csrf_exempt
 def copy_products(request):
     """View for activity copy products."""
-    with open('/root/test.log', 'w', encoding='utf-8') as file:
-        file.write(json.dumps(request.POST))
     initial_data: dict[str, any] = _get_initial_data(request)
     portal, settings_portal = _create_portal(initial_data)
     smart_element_id, deal_id = _check_initial_data(portal, initial_data)
     smart_process_code = _initial_smart_process(portal, initial_data)
-    product_rows = ProductRowB24(portal, 0)
-    products = product_rows.get_list(smart_process_code, smart_element_id)
-    keys_for_del = ['id', 'priceExclusive', 'priceNetto', 'priceBrutto']
-    for product in products:
-        product['ownerType'] = 'D'
-        product['ownerId'] = deal_id
-        for key in keys_for_del:
-            del product[key]
-        product_rows.add(product)
+    try:
+        product_rows = ProductRowB24(portal, 0)
+        products = product_rows.get_list(smart_process_code, smart_element_id)
+        keys_for_del = ['id', 'priceExclusive', 'priceNetto', 'priceBrutto']
+        for product in products:
+            product['ownerType'] = 'D'
+            product['ownerId'] = deal_id
+            for key in keys_for_del:
+                del product[key]
+            product_rows.add(product)
+    except Exception as ex:
+        _response_for_bp(
+            portal,
+            initial_data['event_token'],
+            'Ошибка. Невозможно скопировать товары.',
+            return_values={'result': f'Error: {ex.args[0]}'},
+        )
+        return HttpResponse(status=HTTPStatus.OK)
     _response_for_bp(
         portal,
         initial_data['event_token'],
         'Успех. Товары скопированы.',
-        return_values={'result': f'Ok: {products = }'},
+        return_values={'result': f'Ok: скопированные товары - {products}'},
     )
     return HttpResponse(status=HTTPStatus.OK)
 
@@ -139,32 +142,6 @@ def _initial_smart_process(portal, initial_data):
             return_values={'result': f'Error: {ex.args[0]}'},
         )
         return HttpResponse(status=HTTPStatus.OK)
-
-
-# def create_obj_and_get_all_products(
-#         portal: Portals, obj_id: int, initial_data: dict[str, any],
-#         logger) -> (DealB24 or QuoteB24) or HttpResponse:
-#     """Функция создания сделки или предложения и получения всех товаров."""
-#     try:
-#         if initial_data['document_type'] == 'DEAL':
-#             obj = DealB24(portal, obj_id)
-#         else:
-#             obj = QuoteB24(portal, obj_id)
-#         obj.get_all_products()
-#         if obj.products:
-#             return obj
-#         logger.error(MESSAGES_FOR_LOG['products_in_deal_null'])
-#         logger.info(MESSAGES_FOR_LOG['stop_app'])
-#         response_for_bp(portal, initial_data['event_token'],
-#                         MESSAGES_FOR_BP['products_in_deal_null'])
-#         return HttpResponse(status=200)
-#     except RuntimeError as ex:
-#         logger.error(MESSAGES_FOR_LOG['impossible_get_products'])
-#         logger.info(MESSAGES_FOR_LOG['stop_app'])
-#         response_for_bp(portal, initial_data['event_token'],
-#                         MESSAGES_FOR_BP['impossible_get_products'] + ex.args[
-#                             0])
-#         return HttpResponse(status=200)
 
 
 def _response_for_bp(portal, event_token, log_message, return_values=None):

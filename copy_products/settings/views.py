@@ -1,11 +1,10 @@
 from activities.models import Activity
 from core.bitrix24.bitrix24 import ActivityB24
 from core.models import Portals
+from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
-
 from settings.forms import SettingsPortalForm
 from settings.models import SettingsPortal
 
