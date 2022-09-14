@@ -4,7 +4,7 @@ from http import HTTPStatus
 from django.core.exceptions import ObjectDoesNotExist
 
 from core.bitrix24.bitrix24 import ActivityB24, EnumerationB24, \
-    SmartProcessB24, DealB24
+    SmartProcessB24, DealB24, ProductRowB24
 from core.models import Portals
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -65,17 +65,15 @@ def copy_products(request):
     portal, settings_portal = _create_portal(initial_data)
     smart_element_id, deal_id = _check_initial_data(portal, initial_data)
     smart_process_code = _initial_smart_process(portal, initial_data)
-    smart_process = SmartProcessB24(portal, 0)
-    products = smart_process.get_all_products(smart_process_code,
-                                              smart_element_id)
-    deal = DealB24(portal, deal_id)
-    keys_for_del = ['id', 'ownerId', 'ownerType']
+    product_rows = ProductRowB24(portal, 0)
+    products = product_rows.get_list(smart_process_code, smart_element_id)
+    keys_for_del = ['id', 'priceExclusive', 'priceNetto', 'priceBrutto']
     for product in products:
+        product['ownerType'] = 'D'
+        product['ownerId'] = deal_id
         for key in keys_for_del:
             del product[key]
-    deal.get_all_products()
-    products += deal.products
-    deal.set_products(products)
+        product_rows.add(product)
     _response_for_bp(
         portal,
         initial_data['event_token'],

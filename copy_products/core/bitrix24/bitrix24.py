@@ -11,7 +11,7 @@ class ObjB24:
         self.bx24 = Bitrix24(portal.name)
         self.bx24._access_token = portal.auth_id
         self.id = id_obj
-        if self.GET_PROPS_REST_METHOD:
+        if self.GET_PROPS_REST_METHOD and self.id != 0:
             self.properties = self._get_properties()
 
     def _get_properties(self):
@@ -153,6 +153,49 @@ class ProductB24(ObjB24):
     GET_PROPS_REST_METHOD: str = 'crm.product.get'
 
 
+class ProductRowB24(ObjB24):
+    """Класс Товарной позиции."""
+    GET_PROPS_REST_METHOD: str = 'crm.item.productrow.get'
+
+    def __init__(self, portal: Portals, obj_id: int):
+        super().__init__(portal, obj_id)
+        self.properties = self.properties.get(
+            'productRow') if self.id != 0 else None
+        self.id_in_catalog = self.properties.get(
+            'productId') if self.id != 0 else None
+
+    def update(self, product_id):
+        """Метод изменения товарной позиции."""
+        return self._check_error(self.bx24.call(
+            'crm.item.productrow.update',
+            {
+                'id': product_id,
+                'fields': self.properties
+            }
+        ))
+
+    def get_list(self, owner_type, element_id):
+        """Get all products for owner type and owner id."""
+        return self._check_error(self.bx24.call(
+            'crm.item.productrow.list',
+            {
+                'filter': {
+                    '=ownerType': owner_type,
+                    "=ownerId": element_id
+                }
+            }
+        )).get('productRows')
+
+    def add(self, product):
+        """Add product for owner type and owner id."""
+        return self._check_error(self.bx24.call(
+            'crm.item.productrow.add',
+            {
+                'fields': product,
+            }
+        )).get('productRow')
+
+
 class SmartProcessB24(ObjB24):
     """Класс Smart процесс."""
     # GET_PROPS_REST_METHOD: str = 'crm.type.get'
@@ -166,18 +209,6 @@ class SmartProcessB24(ObjB24):
                     'entityTypeId')),
             }
         )).get('items')
-
-    def get_all_products(self, owner_type, element_id):
-        """Get all products for smart element."""
-        return self._check_error(self.bx24.call(
-            'crm.item.productrow.list',
-            {
-                'filter': {
-                    '=ownerType': owner_type,
-                    "=ownerId": element_id
-                }
-            }
-        )).get('productRows')
 
 
 class ListB24(ObjB24):
